@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Community Events Board
 
-## Getting Started
+Admins post local events; visitors browse, filter, set reminders, follow categories and design a card per event.
 
-First, run the development server:
+**Stack:** Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · Prisma + SQLite · JWT (jose) · zod · motion · sonner
+
+## Setup (about 2 minutes)
+
+Needs Node.js 20.9 or newer.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install        # also runs `prisma generate`
+npm run setup      # creates .env from .env.example, applies migrations, seeds 15 events
+npm run dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`npm run db:seed` resets the sample events at any time.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Logins
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Who | Email | Password | Where |
+| --- | --- | --- | --- |
+| Admin | `admin@events.local` | `Admin@123` | `/admin/login` |
+| Demo visitor (follows Music, Food) | `demo@events.local` | `Demo@1234` | `/login` |
 
-## Learn More
+You can also sign up for a new visitor account at `/signup`.
 
-To learn more about Next.js, take a look at the following resources:
+## API
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Every page calls these JSON endpoints. Auth is `Authorization: Bearer <token>` (for mobile) or the httpOnly cookie that the web app gets on login. Errors are `{ "error": "message" }` with a matching HTTP status.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| POST | `/api/auth/signup` | – | `{email, password}` → `{token, user}` |
+| POST | `/api/auth/login` | – | `{email, password}` → `{token, user, favourites}` |
+| POST | `/api/auth/logout` | – | Clears the web cookie |
+| GET | `/api/me` | user | Current user and favourites |
+| GET / PUT | `/api/me/favourites` | user | `{categories: ["Music","Food"]}` |
+| GET | `/api/events?category=&city=&q=&page=&pageSize=` | optional | Active, upcoming events, nearest first, paginated |
+| GET | `/api/events/:id` | optional | One active event |
+| GET | `/api/cities` | – | Cities that have upcoming events |
+| GET | `/api/feed?page=` | user | Upcoming events in the user's favourite categories |
+| PUT / DELETE | `/api/events/:id/reminder` | user | Set / remove a reminder |
+| GET / PUT | `/api/events/:id/card-design` | user | `{theme, stickers[]}` |
+| GET / POST | `/api/admin/events` | admin | List all / create an event |
+| PATCH | `/api/admin/events/:id` | admin | `{isActive}`. Events are never deleted |
 
-## Deploy on Vercel
+## Still to do
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Responsive polish pass and screen recording
+- The three written answers below
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Use of AI tools
+
+Built with help from Claude Code (Anthropic).
