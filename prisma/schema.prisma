@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// SQLite has no native enum type, so `role` and `category` are plain strings.
+// Allowed values live in src/lib/constants.ts and are validated with zod in the API.
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         String   @default("USER") // "USER" | "ADMIN"
+  createdAt    DateTime @default(now())
+
+  favourites  FavouriteCategory[]
+  reminders   Reminder[]
+  cardDesigns CardDesign[]
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  category    String // Music | Workshop | Food | Sports | Kids
+  city        String
+  startsAt    DateTime // stored in UTC, shown in IST
+  price       Int // whole rupees, 0 = free
+  description String
+  imageUrl    String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  reminders   Reminder[]
+  cardDesigns CardDesign[]
+
+  // Public listing: WHERE isActive AND startsAt >= now ORDER BY startsAt
+  @@index([isActive, startsAt])
+  // Category filter / My Feed: WHERE category IN (...) AND isActive AND startsAt >= now
+  @@index([category, isActive, startsAt])
+}
+
+model FavouriteCategory {
+  userId   String
+  category String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, category])
+}
+
+model Reminder {
+  userId    String
+  eventId   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@id([userId, eventId])
+}
+
+model CardDesign {
+  userId    String
+  eventId   String
+  theme     String // one of CARD_THEMES ids
+  stickers  String // JSON array of sticker ids, max 3, e.g. ["star","party"]
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@id([userId, eventId])
+}
