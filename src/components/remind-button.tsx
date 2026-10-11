@@ -25,7 +25,7 @@ export function RemindButton({ eventId, initialReminded, size = "sm" }: Props) {
     setReminded(next); // optimistic: update the screen before the server answers
     setSaving(true);
     try {
-      await api(`/api/events/${eventId}/reminder`, { method: next ? "PUT" : "DELETE" });
+      await api(`/api/events/${eventId}/reminder`, { method: next ? "PUT" : "DELETE", keepalive: true });
       toast.success(next ? "We'll remind you about this event" : "Reminder removed");
     } catch (err) {
       setReminded(!next); // roll back to what the server still has

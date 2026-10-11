@@ -15,7 +15,15 @@ export class ApiClientError extends Error {
   }
 }
 
-export async function api<T>(path: string, init: { method?: string; body?: unknown; signal?: AbortSignal } = {}): Promise<T> {
+type RequestOptions = {
+  method?: string;
+  body?: unknown;
+  signal?: AbortSignal;
+  /** Let the request finish even if the user refreshes or leaves the page right after. */
+  keepalive?: boolean;
+};
+
+export async function api<T>(path: string, init: RequestOptions = {}): Promise<T> {
   let res: Response;
   try {
     res = await fetch(path, {
@@ -23,6 +31,7 @@ export async function api<T>(path: string, init: { method?: string; body?: unkno
       headers: init.body !== undefined ? { "Content-Type": "application/json" } : undefined,
       body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
       signal: init.signal,
+      keepalive: init.keepalive,
       cache: "no-store",
     });
   } catch (err) {

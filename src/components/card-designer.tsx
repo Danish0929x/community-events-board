@@ -4,7 +4,7 @@ import { Check, CloudAlert, CloudCheck, Palette } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api, type EventDto } from "@/lib/client";
 import {
@@ -37,15 +37,19 @@ export function CardDesigner({ event }: { event: EventDto }) {
   const [design, setDesign] = useState<Design>(DEFAULT_CARD_DESIGN);
   const [loaded, setLoaded] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
-  const [changeCount, setChangeCount] = useState(0); // bumps on every user edit
-  const latestRequest = useRef(0);
+  const edited = useRef(false); // has the user changed anything yet?
+  const saveQueue = useRef<Promise<void>>(Promise.resolve());
+  const latestSave = useRef(0);
 
   // Load the saved design for this event.
   useEffect(() => {
     if (!loggedIn) return;
     const controller = new AbortController();
     api<{ design: Design }>(`/api/events/${event.id}/card-design`, { signal: controller.signal })
-      .then((res) => setDesign(res.design))
+      .then((res) => {
+        // If the user already tapped something, their change wins over the slower load.
+        if (!edited.current) setDesign(res.design);
+      })
       .catch((err: Error) => {
         if (err.name !== "AbortError") toast.error(`Couldn't load your saved card. ${err.message}`);
       })
@@ -53,33 +57,29 @@ export function CardDesigner({ event }: { event: EventDto }) {
     return () => controller.abort();
   }, [loggedIn, event.id]);
 
-  const save = useCallback(
-    async (next: Design) => {
-      const requestId = ++latestRequest.current;
-      setSaveState("saving");
+  // Save every change straight away. Requests are chained so they reach the server in
+  // order (the last tap always wins), and keepalive lets the last one finish even if the
+  // user refreshes or leaves the page immediately.
+  function save(next: Design) {
+    const saveId = ++latestSave.current;
+    setSaveState("saving");
+    saveQueue.current = saveQueue.current.then(async () => {
       try {
-        await api(`/api/events/${event.id}/card-design`, { method: "PUT", body: next });
-        if (requestId === latestRequest.current) setSaveState("saved");
+        await api(`/api/events/${event.id}/card-design`, { method: "PUT", body: next, keepalive: true });
+        if (saveId === latestSave.current) setSaveState("saved");
       } catch (err) {
-        if (requestId === latestRequest.current) {
+        if (saveId === latestSave.current) {
           setSaveState("error");
           toast.error(`Couldn't save your card. ${(err as Error).message}`);
         }
       }
-    },
-    [event.id],
-  );
-
-  // Save shortly after the last change, so quick taps become one request.
-  useEffect(() => {
-    if (!loggedIn || changeCount === 0) return;
-    const t = setTimeout(() => save(design), 400);
-    return () => clearTimeout(t);
-  }, [changeCount, loggedIn, design, save]);
+    });
+  }
 
   function update(next: Design) {
+    edited.current = true;
     setDesign(next);
-    setChangeCount((n) => n + 1);
+    if (loggedIn) save(next);
   }
 
   function toggleSticker(id: StickerId) {
