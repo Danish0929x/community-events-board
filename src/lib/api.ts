@@ -14,6 +14,12 @@ export class ApiError extends Error {
 
 export type AuthUser = { id: string; email: string; role: Role };
 
+// MongoDB ids are 24 hex characters. Anything else can't exist, so answer 404 instead of
+// letting Prisma throw on a malformed ObjectId.
+export function assertObjectId(id: string, message = "Event not found") {
+  if (!/^[a-f\d]{24}$/i.test(id)) throw new ApiError(404, message);
+}
+
 // Wraps a route handler so thrown ApiErrors / zod errors become JSON error responses
 // with the right status, and anything unexpected becomes a 500 without leaking details.
 export function handler<Ctx>(fn: (req: NextRequest, ctx: Ctx) => Promise<Response>) {

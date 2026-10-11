@@ -3,15 +3,15 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
-// SQLite has no native enum type, so `role` and `category` are plain strings.
-// Allowed values live in src/lib/constants.ts and are validated with zod in the API.
+// `role` and `category` are plain strings. Allowed values live in src/lib/constants.ts
+// and are validated with zod in the API, so the UI and API share one list.
 
 model User {
-  id           String   @id @default(cuid())
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
   email        String   @unique
   passwordHash String
   role         String   @default("USER") // "USER" | "ADMIN"
@@ -23,7 +23,7 @@ model User {
 }
 
 model Event {
-  id          String   @id @default(cuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   category    String // Music | Workshop | Food | Sports | Kids
   city        String
@@ -38,38 +38,42 @@ model Event {
   reminders   Reminder[]
   cardDesigns CardDesign[]
 
-  // Public listing: WHERE isActive AND startsAt >= now ORDER BY startsAt
+  // Public listing: { isActive: true, startsAt: { $gte: now } } sorted by startsAt
   @@index([isActive, startsAt])
-  // Category filter / My Feed: WHERE category IN (...) AND isActive AND startsAt >= now
+  // Category filter / My Feed: { category: { $in: [...] }, isActive, startsAt }
   @@index([category, isActive, startsAt])
 }
 
 model FavouriteCategory {
-  userId   String
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  userId   String @db.ObjectId
   category String
   user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@id([userId, category])
+  @@unique([userId, category])
 }
 
 model Reminder {
-  userId    String
-  eventId   String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  eventId   String   @db.ObjectId
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
-  @@id([userId, eventId])
+  // One reminder per user per event; also makes "set reminder" an idempotent upsert.
+  @@unique([userId, eventId])
 }
 
 model CardDesign {
-  userId    String
-  eventId   String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  eventId   String   @db.ObjectId
   theme     String // one of CARD_THEMES ids
-  stickers  String // JSON array of sticker ids, max 3, e.g. ["star","party"]
+  stickers  String[] // sticker ids, max 3, e.g. ["star", "party"]
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
-  @@id([userId, eventId])
+  @@unique([userId, eventId])
 }

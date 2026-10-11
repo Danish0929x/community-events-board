@@ -49,8 +49,13 @@ export async function listUpcomingEvents(opts: ListOptions): Promise<Paginated<E
     startsAt: { gte: new Date() },
     ...(opts.categories && { category: { in: opts.categories } }),
     ...(opts.city && { city: opts.city }),
-    // SQLite LIKE is case-insensitive for ASCII, so "night" matches "Jazz Night".
-    ...(opts.q && { OR: [{ title: { contains: opts.q } }, { description: { contains: opts.q } }] }),
+    // Case-insensitive "contains" (a regex in MongoDB), so "night" matches "Jazz Night".
+    ...(opts.q && {
+      OR: [
+        { title: { contains: opts.q, mode: "insensitive" } },
+        { description: { contains: opts.q, mode: "insensitive" } },
+      ],
+    }),
   };
 
   const [total, rows] = await prisma.$transaction([

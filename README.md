@@ -2,19 +2,20 @@
 
 Admins post local events; visitors browse, filter, set reminders, follow categories and design a card per event.
 
-**Stack:** Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · Prisma + SQLite · JWT (jose) · zod · motion · sonner
+**Stack:** Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · Prisma + MongoDB · JWT (jose) · zod · motion · sonner
 
-## Setup (about 2 minutes)
+## Setup (about 3 minutes)
 
-Needs Node.js 20.9 or newer.
+Needs Node.js 20.9 or newer and a MongoDB connection string (a free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cluster works).
 
 ```bash
-npm install        # also runs `prisma generate`
-npm run setup      # creates .env from .env.example, applies migrations, seeds 15 events
-npm run dev        # http://localhost:3000
+npm install                 # also runs `prisma generate`
+cp .env.example .env        # then paste your MongoDB URL into DATABASE_URL
+npm run setup               # creates collections + indexes, seeds 15 events and the admin
+npm run dev                 # http://localhost:3000
 ```
 
-`npm run db:seed` resets the sample events at any time.
+Keep `/community_events` (the database name) in the URL path. `npm run db:seed` resets the sample events at any time.
 
 ## Logins
 

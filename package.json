@@ -8,9 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
-    "setup": "node -e \"require('fs').existsSync('.env')||require('fs').copyFileSync('.env.example','.env')\" && prisma migrate deploy && npm run db:seed",
-    "db:seed": "tsx --env-file=.env prisma/seed.ts",
-    "db:reset": "prisma migrate reset --force --skip-seed && npm run db:seed"
+    "setup": "node -e \"require('fs').existsSync('.env')||require('fs').copyFileSync('.env.example','.env')\" && prisma db push && npm run db:seed",
+    "db:seed": "tsx --env-file=.env prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

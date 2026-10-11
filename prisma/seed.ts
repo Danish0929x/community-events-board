@@ -78,7 +78,9 @@ async function main() {
     data: ["Music", "Food"].map((category) => ({ userId: demo.id, category })),
   });
 
-  // Re-running the seed resets events (reminders and card designs cascade with them).
+  // Re-running the seed resets events, along with the reminders and card designs on them.
+  await prisma.reminder.deleteMany();
+  await prisma.cardDesign.deleteMany();
   await prisma.event.deleteMany();
   await prisma.event.createMany({ data: events });
 

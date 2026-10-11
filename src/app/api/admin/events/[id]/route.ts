@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { ApiError, handler, parseBody, requireAdmin } from "@/lib/api";
+import { ApiError, assertObjectId, handler, parseBody, requireAdmin } from "@/lib/api";
 import { prisma } from "@/lib/db";
 import { toEventDto } from "@/lib/events";
 import { updateEventStatusSchema } from "@/lib/schemas";
@@ -8,6 +8,7 @@ import { updateEventStatusSchema } from "@/lib/schemas";
 export const PATCH = handler(async (req: NextRequest, ctx: RouteContext<"/api/admin/events/[id]">) => {
   await requireAdmin(req);
   const { id } = await ctx.params;
+  assertObjectId(id);
   const { isActive } = await parseBody(req, updateEventStatusSchema);
 
   const exists = await prisma.event.findUnique({ where: { id }, select: { id: true } });
