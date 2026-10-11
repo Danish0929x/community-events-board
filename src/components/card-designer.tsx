@@ -108,13 +108,13 @@ export function CardDesigner({ event }: { event: EventDto }) {
       <div className="grid items-center gap-8 md:grid-cols-[minmax(0,380px)_1fr] md:gap-12">
         {/* Live preview */}
         <div className="relative mx-auto aspect-[4/5] w-full max-w-[380px] overflow-hidden rounded-3xl shadow-2xl shadow-black/20">
+          {/* All three backgrounds are stacked; only the chosen one is visible, so switching is a cross-fade. */}
           {CARD_THEMES.map((t) => (
-            <motion.div
+            <div
               key={t.id}
-              className={`absolute inset-0 ${t.background}`}
-              initial={false}
-              animate={{ opacity: t.id === design.theme ? 1 : 0 }}
-              transition={{ duration: 0.45, ease: "easeInOut" }}
+              className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${t.background} ${
+                t.id === design.theme ? "opacity-100" : "opacity-0"
+              }`}
               aria-hidden
             />
           ))}
