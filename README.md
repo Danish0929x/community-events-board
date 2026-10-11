@@ -43,7 +43,7 @@ The admin is created by the seed from `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `.env`
 | `/signup`, `/login` | Email + password. After the first login you pick favourite categories |
 | `/favourites` | Choose favourite categories |
 | `/feed` | **My Feed**: upcoming events from your favourite categories |
-| `/admin`, `/admin/events/new` | Admin only: list all events, switch Active/Inactive, add an event |
+| `/admin`, `/admin/events/new`, `/admin/events/:id/edit` | Admin only: list all events, switch Active/Inactive, add or edit an event |
 
 ## API
 
@@ -63,7 +63,8 @@ All pages use these JSON endpoints, so a mobile app can use the same API. Send t
 | PUT / DELETE | `/api/events/:id/reminder` | user | Set / remove a reminder → `{reminded}` |
 | GET / PUT | `/api/events/:id/card-design` | user | `{theme, stickers}`. Theme is `none`, `sunset`, `midnight` or `meadow`; at most 3 stickers |
 | GET / POST | `/api/admin/events` | admin | List every event / create one |
-| PATCH | `/api/admin/events/:id` | admin | `{isActive: true \| false}`. There is no delete |
+| GET | `/api/admin/events/:id` | admin | `{event}`, including inactive and past events |
+| PATCH | `/api/admin/events/:id` | admin | Any fields to change, e.g. `{price: 1800}` or `{isActive: false}`. There is no delete |
 
 When a visitor is logged in, each event in a list also carries `reminded` and their `cardDesign`.
 
