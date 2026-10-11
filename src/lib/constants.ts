@@ -11,7 +11,15 @@ export const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
 export const DEFAULT_PAGE_SIZE = 6;
 
+// "none" is a plain card; the other three are the coloured background themes.
 export const CARD_THEMES = [
+  {
+    id: "none",
+    name: "None",
+    background: "bg-surface",
+    text: "text-ink",
+    swatch: "bg-surface",
+  },
   {
     id: "sunset",
     name: "Sunset",

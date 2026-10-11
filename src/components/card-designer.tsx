@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, CloudAlert, CloudCheck, Palette } from "lucide-react";
+import { Ban, Check, CloudAlert, CloudCheck, Palette } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -91,6 +91,7 @@ export function CardDesigner({ event }: { event: EventDto }) {
   }
 
   const theme = CARD_THEMES.find((t) => t.id === design.theme) ?? CARD_THEMES[0];
+  const plain = theme.id === "none";
   const full = design.stickers.length >= MAX_STICKERS;
 
   return (
@@ -107,7 +108,11 @@ export function CardDesigner({ event }: { event: EventDto }) {
 
       <div className="grid items-center gap-8 md:grid-cols-[minmax(0,380px)_1fr] md:gap-12">
         {/* Live preview */}
-        <div className="relative mx-auto aspect-[4/5] w-full max-w-[380px] overflow-hidden rounded-3xl shadow-2xl shadow-black/20">
+        <div
+          className={`relative mx-auto aspect-[4/5] w-full max-w-[380px] overflow-hidden rounded-3xl shadow-2xl shadow-black/20 ${
+            plain ? "ring-1 ring-line" : ""
+          }`}
+        >
           {/* All three backgrounds are stacked; only the chosen one is visible, so switching is a cross-fade. */}
           {CARD_THEMES.map((t) => (
             <div
@@ -122,7 +127,11 @@ export function CardDesigner({ event }: { event: EventDto }) {
           <div className="absolute -top-10 left-1/3 size-32 rounded-full bg-white/10" aria-hidden />
 
           <div className={`relative flex h-full flex-col justify-end p-6 transition-colors duration-500 ${theme.text}`}>
-            <span className="mb-auto w-fit rounded-full bg-white/25 px-3 py-1 text-xs font-bold tracking-wider uppercase backdrop-blur-sm">
+            <span
+              className={`mb-auto w-fit rounded-full px-3 py-1 text-xs font-bold tracking-wider uppercase backdrop-blur-sm transition-colors duration-500 ${
+                plain ? "bg-brand-50 text-brand-700" : "bg-white/25"
+              }`}
+            >
               {event.category}
             </span>
             <p className="text-xs font-bold tracking-[0.2em] uppercase opacity-80">You&apos;re going to</p>
@@ -172,7 +181,7 @@ export function CardDesigner({ event }: { event: EventDto }) {
         <div className="space-y-8">
           <fieldset>
             <legend className="mb-3 text-sm font-bold">Background</legend>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {CARD_THEMES.map((t) => {
                 const selected = t.id === design.theme;
                 return (
@@ -185,7 +194,12 @@ export function CardDesigner({ event }: { event: EventDto }) {
                       selected ? "border-brand-600" : "border-line hover:border-ink/25"
                     }`}
                   >
-                    <span className={`relative block h-14 rounded-xl ${t.swatch}`}>
+                    <span
+                      className={`relative grid h-14 place-items-center rounded-xl ${t.swatch} ${
+                        t.id === "none" ? "border border-dashed border-line text-muted" : ""
+                      }`}
+                    >
+                      {t.id === "none" && <Ban className="size-5" aria-hidden />}
                       {selected && (
                         <span className="absolute top-1.5 right-1.5 grid size-5 place-items-center rounded-full bg-white text-brand-600 shadow">
                           <Check className="size-3.5" strokeWidth={3} />

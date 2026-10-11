@@ -10,7 +10,8 @@ import { CategoryBadge } from "./ui";
 export function EventCard({ event }: { event: EventDto }) {
   const badge = formatDateBadge(event.startsAt);
   // If the user designed a card for this event, the card wears that theme and stickers.
-  const theme = event.cardDesign && CARD_THEMES.find((t) => t.id === event.cardDesign!.theme);
+  const theme =
+    event.cardDesign?.theme !== "none" ? CARD_THEMES.find((t) => t.id === event.cardDesign?.theme) : undefined;
   const stickers = (event.cardDesign?.stickers ?? []).map((id) => STICKERS.find((s) => s.id === id)!).filter(Boolean);
   const secondary = theme ? "opacity-85" : "text-muted";
   return (
