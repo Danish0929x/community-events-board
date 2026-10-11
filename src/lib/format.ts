@@ -37,6 +37,11 @@ export function formatDateBadge(iso: string): { day: string; month: string } {
   return { day: parts.day, month: parts.month };
 }
 
+/** ISO date -> value for <input type="datetime-local"> in IST, e.g. "2026-10-18T18:30". */
+export function isoToLocalInput(iso: string): string {
+  return new Date(new Date(iso).getTime() + 5.5 * 60 * 60 * 1000).toISOString().slice(0, 16);
+}
+
 /** Value for <input type="datetime-local"> -> ISO string with the IST offset. */
 export function localInputToIso(value: string): string {
   return `${value}:00+05:30`;

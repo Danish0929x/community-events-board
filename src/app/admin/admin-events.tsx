@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -12,6 +12,12 @@ import { useApi } from "@/lib/use-api";
 export function AdminEvents() {
   const list = useApi<{ items: EventDto[] }>("/api/admin/events");
   const [overrides, setOverrides] = useState<Record<string, boolean>>({});
+  const [overridesFor, setOverridesFor] = useState(list.data);
+  if (list.data !== overridesFor) {
+    // Fresh data from the server (e.g. back from the edit page) replaces local switches.
+    setOverridesFor(list.data);
+    setOverrides({});
+  }
   const [busy, setBusy] = useState<string | null>(null);
 
   async function setActive(event: EventDto, isActive: boolean) {
@@ -54,22 +60,37 @@ export function AdminEvents() {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-bold">{e.title}</span>
                     <CategoryBadge category={e.category} />
-                    {past && <span className="rounded-full bg-line px-2 py-0.5 text-xs font-semibold text-muted">Past</span>}
+                    {past && (
+                      <span className="rounded-full bg-line px-2 py-0.5 text-xs font-semibold text-muted">Past</span>
+                    )}
                   </div>
                   <p className="mt-1 text-sm text-muted">
                     {formatEventDate(e.startsAt)} · {e.city} · {formatPrice(e.price)}
                   </p>
                 </div>
-                <button
-                  onClick={() => setActive(e, !active)}
-                  disabled={busy === e.id}
-                  role="switch"
-                  aria-checked={active}
-                  className={`btn w-32 ${active ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200" : "bg-line text-muted hover:bg-line/70"}`}
-                >
-                  {busy === e.id ? <Spinner /> : <span className={`size-2 rounded-full ${active ? "bg-emerald-600" : "bg-muted"}`} />}
-                  {active ? "Active" : "Inactive"}
-                </button>
+                <div className="flex gap-2">
+                  <Link
+                    href={`/admin/events/${e.id}/edit`}
+                    className="btn-secondary flex-1 sm:flex-none"
+                    aria-label={`Edit ${e.title}`}
+                  >
+                    <Pencil className="size-4" aria-hidden /> Edit
+                  </Link>
+                  <button
+                    onClick={() => setActive(e, !active)}
+                    disabled={busy === e.id}
+                    role="switch"
+                    aria-checked={active}
+                    className={`btn w-32 flex-1 sm:flex-none ${active ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200" : "bg-line text-muted hover:bg-line/70"}`}
+                  >
+                    {busy === e.id ? (
+                      <Spinner />
+                    ) : (
+                      <span className={`size-2 rounded-full ${active ? "bg-emerald-600" : "bg-muted"}`} />
+                    )}
+                    {active ? "Active" : "Inactive"}
+                  </button>
+                </div>
               </li>
             );
           })}

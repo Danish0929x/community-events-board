@@ -35,19 +35,26 @@ export const cardDesignSchema = z.object({
     .refine((list) => new Set(list).size === list.length, "Each sticker can be added once"),
 });
 
-export const createEventSchema = z.object({
+// Fields shared by "add" and "edit". ISO 8601 dates with an offset, e.g. "2026-10-18T18:30:00+05:30".
+const eventFields = {
   title: z.string().trim().min(3, "Title is too short").max(120),
   category: z.enum(CATEGORIES),
   city: z.string().trim().min(2, "City is required").max(60),
-  // ISO 8601 with an offset, e.g. "2026-10-18T18:30:00+05:30"
-  startsAt: z.iso
-    .datetime({ offset: true, error: "Enter a valid date and time" })
-    .transform((v) => new Date(v))
-    .refine((d) => d.getTime() > Date.now(), "Date must be in the future"),
+  startsAt: z.iso.datetime({ offset: true, error: "Enter a valid date and time" }).transform((v) => new Date(v)),
   price: z.coerce.number().int("Price must be a whole number of rupees").min(0).max(10_000_000),
   description: z.string().trim().min(10, "Description is too short").max(2000),
   imageUrl: z.url({ protocol: /^https?$/, error: "Enter a valid http(s) image URL" }),
+};
+
+export const createEventSchema = z.object({
+  ...eventFields,
+  startsAt: eventFields.startsAt.refine((d) => d.getTime() > Date.now(), "Date must be in the future"),
   isActive: z.boolean().default(true),
 });
 
-export const updateEventStatusSchema = z.object({ isActive: z.boolean() });
+// Edit sends only the fields that change (the Active/Inactive switch sends just `isActive`).
+// Past dates are allowed here so an admin can still correct an event that already happened.
+export const updateEventSchema = z
+  .object({ ...eventFields, isActive: z.boolean() })
+  .partial()
+  .refine((data) => Object.keys(data).length > 0, "Nothing to update");
