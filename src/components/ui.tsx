@@ -61,7 +61,10 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
     <div role="alert" className="card flex flex-col items-center border-red-200 bg-red-50/50 px-6 py-12 text-center">
       <TriangleAlert className="mb-3 size-8 text-red-500" aria-hidden />
       <h2 className="font-bold">Something went wrong</h2>
-      <p className="mt-1 max-w-sm text-sm text-muted">{message}</p>
+      <p className="mt-1 max-w-sm text-sm text-muted">
+        {/* The API's generic 500 message would just repeat the heading. */}
+        {message === "Something went wrong" ? "We couldn't load this right now. Please try again in a moment." : message}
+      </p>
       {onRetry && (
         <button onClick={onRetry} className="btn-secondary mt-5">
           <RefreshCw className="size-4" /> Try again
