@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { TOKEN_COOKIE, TOKEN_TTL_SECONDS, type Role } from "./constants";
@@ -27,6 +28,7 @@ export function handler<Ctx>(fn: (req: NextRequest, ctx: Ctx) => Promise<Respons
     try {
       return await fn(req, ctx);
     } catch (err) {
+      unstable_rethrow(err); // let Next.js handle its own control-flow errors (e.g. prerender bail-out)
       if (err instanceof ApiError) {
         return NextResponse.json({ error: err.message }, { status: err.status });
       }
