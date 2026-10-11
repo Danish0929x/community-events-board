@@ -37,7 +37,7 @@ export function AdminEvents() {
 
       {list.error ? (
         <ErrorState message={list.error} onRetry={list.reload} />
-      ) : list.loading || !list.data ? (
+      ) : !list.data ? (
         <div className="card grid place-items-center p-12">
           <Spinner className="size-6" />
         </div>

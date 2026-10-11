@@ -76,7 +76,10 @@ export function EventsBrowser() {
         <div className="flex flex-col gap-3 sm:flex-row">
           <label className="relative flex-1">
             <span className="sr-only">Search events</span>
-            <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted" aria-hidden />
+            <Search
+              className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted"
+              aria-hidden
+            />
             <input
               type="search"
               value={searchText}
@@ -87,8 +90,15 @@ export function EventsBrowser() {
           </label>
           <label className="relative sm:w-56">
             <span className="sr-only">City</span>
-            <MapPin className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted" aria-hidden />
-            <select value={city} onChange={(e) => updateFilters({ city: e.target.value })} className="field appearance-none pl-10">
+            <MapPin
+              className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted"
+              aria-hidden
+            />
+            <select
+              value={city}
+              onChange={(e) => updateFilters({ city: e.target.value })}
+              className="field appearance-none pl-10"
+            >
               <option value="">All cities</option>
               {cities.data?.cities.map((c) => (
                 <option key={c} value={c}>
@@ -119,55 +129,54 @@ export function EventsBrowser() {
 
       <div className="mb-4 flex min-h-8 items-center justify-between gap-3 text-sm text-muted">
         <p aria-live="polite">
-          {events.data && !events.loading && `${events.data.total} ${events.data.total === 1 ? "event" : "events"} found`}
+          {events.data && `${events.data.total} ${events.data.total === 1 ? "event" : "events"} found`}
         </p>
         {hasFilters && (
-          <button
-            onClick={clearFilters}
-            className="btn-ghost px-2 py-1"
-          >
+          <button onClick={clearFilters} className="btn-ghost px-2 py-1">
             <X className="size-4" /> Clear filters
           </button>
         )}
       </div>
 
-      {events.error ? (
-        <ErrorState message={events.error} onRetry={events.reload} />
-      ) : events.loading || !events.data ? (
-        <EventGridSkeleton />
-      ) : events.data.items.length === 0 ? (
-        <EmptyState
-          emoji={hasFilters ? "🔍" : "🗓️"}
-          title={hasFilters ? "No events match those filters" : "No upcoming events yet"}
-          message={
-            hasFilters
-              ? "Try another category or city, or a shorter search word."
-              : "Check back soon, new events are added every week."
-          }
-          action={
-            hasFilters && (
-              <button
-                className="btn-secondary"
-                onClick={clearFilters}
-              >
-                Clear filters
-              </button>
-            )
-          }
-        />
-      ) : (
-        <>
-          <EventGrid events={events.data.items} />
-          <Pagination
-            page={events.data.page}
-            totalPages={events.data.totalPages}
-            onChange={(p) => {
-              updateFilters({ page: p > 1 ? String(p) : "" });
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
+      <div
+        aria-busy={events.refreshing}
+        className={`transition-opacity duration-200 ${events.refreshing ? "opacity-60" : ""}`}
+      >
+        {events.error ? (
+          <ErrorState message={events.error} onRetry={events.reload} />
+        ) : !events.data ? (
+          <EventGridSkeleton />
+        ) : events.data.items.length === 0 ? (
+          <EmptyState
+            emoji={hasFilters ? "🔍" : "🗓️"}
+            title={hasFilters ? "No events match those filters" : "No upcoming events yet"}
+            message={
+              hasFilters
+                ? "Try another category or city, or a shorter search word."
+                : "Check back soon, new events are added every week."
+            }
+            action={
+              hasFilters && (
+                <button className="btn-secondary" onClick={clearFilters}>
+                  Clear filters
+                </button>
+              )
+            }
           />
-        </>
-      )}
+        ) : (
+          <>
+            <EventGrid events={events.data.items} />
+            <Pagination
+              page={events.data.page}
+              totalPages={events.data.totalPages}
+              onChange={(p) => {
+                updateFilters({ page: p > 1 ? String(p) : "" });
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            />
+          </>
+        )}
+      </div>
     </div>
   );
 }

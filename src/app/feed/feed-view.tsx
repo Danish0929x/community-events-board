@@ -30,30 +30,43 @@ export function FeedView() {
         </div>
       )}
 
-      {feed.error ? (
-        <ErrorState message={feed.error} onRetry={feed.reload} />
-      ) : feed.loading || !feed.data ? (
-        <EventGridSkeleton />
-      ) : feed.data.favourites.length === 0 ? (
-        <EmptyState
-          emoji="✨"
-          title="Your feed is waiting"
-          message="Pick a few favourite categories and we'll show upcoming events for them here."
-          action={<Link href="/favourites" className="btn-primary">Choose categories</Link>}
-        />
-      ) : feed.data.items.length === 0 ? (
-        <EmptyState
-          emoji="🗓️"
-          title="Nothing coming up just yet"
-          message="There are no upcoming events in your categories right now. Try adding more categories or browse everything."
-          action={<Link href="/events" className="btn-primary">Browse all events</Link>}
-        />
-      ) : (
-        <>
-          <EventGrid events={feed.data.items} />
-          <Pagination page={feed.data.page} totalPages={feed.data.totalPages} onChange={setPage} />
-        </>
-      )}
+      <div
+        aria-busy={feed.refreshing}
+        className={`transition-opacity duration-200 ${feed.refreshing ? "opacity-60" : ""}`}
+      >
+        {feed.error ? (
+          <ErrorState message={feed.error} onRetry={feed.reload} />
+        ) : !feed.data ? (
+          <EventGridSkeleton />
+        ) : feed.data.favourites.length === 0 ? (
+          <EmptyState
+            emoji="✨"
+            title="Your feed is waiting"
+            message="Pick a few favourite categories and we'll show upcoming events for them here."
+            action={
+              <Link href="/favourites" className="btn-primary">
+                Choose categories
+              </Link>
+            }
+          />
+        ) : feed.data.items.length === 0 ? (
+          <EmptyState
+            emoji="🗓️"
+            title="Nothing coming up just yet"
+            message="There are no upcoming events in your categories right now. Try adding more categories or browse everything."
+            action={
+              <Link href="/events" className="btn-primary">
+                Browse all events
+              </Link>
+            }
+          />
+        ) : (
+          <>
+            <EventGrid events={feed.data.items} />
+            <Pagination page={feed.data.page} totalPages={feed.data.totalPages} onChange={setPage} />
+          </>
+        )}
+      </div>
     </>
   );
 }

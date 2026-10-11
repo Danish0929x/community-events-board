@@ -31,7 +31,8 @@ export function EventDetail({ params }: { params: Promise<{ id: string }> }) {
     );
   }
   if (error) return <ErrorState message={error} onRetry={reload} />;
-  if (loading || !data) return <EventDetailSkeleton />;
+  // useApi keeps the previous response while refetching; never show another event's data.
+  if (loading || !data || data.event.id !== id) return <EventDetailSkeleton />;
 
   const { event } = data;
   const isPast = new Date(event.startsAt) < new Date();
@@ -66,7 +67,8 @@ export function EventDetail({ params }: { params: Promise<{ id: string }> }) {
         </div>
       </div>
 
-      <CardDesigner event={event} />
+      {/* Keyed so moving to another event starts a fresh designer instead of reusing state. */}
+      <CardDesigner key={event.id} event={event} />
     </div>
   );
 }
