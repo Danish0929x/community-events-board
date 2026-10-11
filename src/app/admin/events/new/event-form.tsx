@@ -15,7 +15,8 @@ export function EventForm() {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const f = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const f = new FormData(form);
     setSaving(true);
     setError(null);
     try {
@@ -33,9 +34,11 @@ export function EventForm() {
         },
       });
       toast.success("Event added");
+      form.reset(); // Next.js keeps this page alive, so start empty next time
       router.push("/admin");
     } catch (err) {
       setError((err as Error).message);
+    } finally {
       setSaving(false);
     }
   }

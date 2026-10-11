@@ -41,10 +41,14 @@ export function AuthForm({ mode }: { mode: Mode }) {
       if (mode === "admin") dest = next ?? "/admin";
       // New users (or users who never chose) pick their favourite categories first.
       else if (session.favourites.length === 0) dest = `/favourites${next ? `?next=${encodeURIComponent(next)}` : ""}`;
+      // Next.js keeps visited pages alive in the background, so clear the form for next time.
+      setEmail("");
+      setPassword("");
       router.replace(dest);
       router.refresh();
     } catch (err) {
       setError((err as Error).message);
+    } finally {
       setSubmitting(false);
     }
   }

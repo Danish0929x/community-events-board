@@ -33,10 +33,13 @@ export function FavouritesPicker() {
     try {
       const res = await api<{ categories: Category[] }>("/api/me/favourites", { method: "PUT", body: { categories: selected } });
       if (session) setSession({ ...session, favourites: res.categories });
+      setPicked(null); // show what the server has next time this page is opened
       const next = searchParams.get("next");
       router.push(next?.startsWith("/") && !next.startsWith("//") ? next : "/feed");
     } catch (err) {
       setError((err as Error).message);
+    } finally {
+      // Next.js keeps visited pages alive in the background, so always clear the spinner.
       setSaving(false);
     }
   }
