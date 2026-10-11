@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, startTransition, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api, ApiClientError, type Session } from "@/lib/client";
 
 type AuthContextValue = {
@@ -21,13 +21,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStatus(next ? "authenticated" : "anonymous");
   }, []);
 
-  // The token lives in an httpOnly cookie, so ask the API who we are.
+  // The token lives in an httpOnly cookie, so ask the API who we are. The result is applied
+  // as a transition so React finishes hydrating the header (which is inside <Suspense>)
+  // before the login state changes, instead of hitting a hydration mismatch.
   useEffect(() => {
     api<Session>("/api/me")
-      .then(setSession)
+      .then((s) => startTransition(() => setSession(s)))
       .catch((err) => {
         if (!(err instanceof ApiClientError) || err.status !== 401) console.error(err);
-        setSession(null);
+        startTransition(() => setSession(null));
       });
   }, [setSession]);
 
