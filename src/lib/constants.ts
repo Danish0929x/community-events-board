@@ -56,4 +56,4 @@ export type StickerId = (typeof STICKERS)[number]["id"];
 export const STICKER_IDS = STICKERS.map((s) => s.id) as [StickerId, ...StickerId[]];
 export const MAX_STICKERS = 3;
 
-export const DEFAULT_CARD_DESIGN = { theme: "sunset" as CardThemeId, stickers: [] as StickerId[] };
+export const DEFAULT_CARD_DESIGN = { theme: "none" as CardThemeId, stickers: [] as StickerId[] };
